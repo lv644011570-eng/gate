@@ -674,6 +674,15 @@ def main():
     success = [r for r in results if r.get("success")]
     failed = [r for r in results if not r.get("success")]
     worker_errors = [r for r in failed if r.get("worker_error")]
+   # ↓↓↓ 新加的部分从这里开始 ↓↓↓
+    from collections import Counter
+    reasons = Counter((r.get("error") or "未知")[:150] for r in failed)
+    for reason, cnt in reasons.most_common(5):
+        log("CLOUDFLARE WORKER", f"失败原因 x{cnt}: {reason}")
+    if uniq:
+        sample = WORKER_CHECK_URL + quote(f"{uniq[0]['host']}:{uniq[0]['port']}", safe="")
+        log("CLOUDFLARE WORKER", f"示例请求 URL: {sample}")
+    # ↑↑↑ 新加的部分到这里结束 ↑↑↑
 
     log("CLOUDFLARE WORKER", f"检测成功: {len(success)}")
     log("CLOUDFLARE WORKER", f"检测失败: {len(failed)}" + (f" (其中 Worker 异常 {len(worker_errors)})" if worker_errors else ""))
